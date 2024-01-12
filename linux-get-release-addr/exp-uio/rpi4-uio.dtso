@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+/{
+    fragment@0 {
+        target-path="/";
+        __overlay__ {
+            #address-cells = <0x02>;
+            #size-cells = <0x01>;
+
+            uio@0 {
+                compatible = "generic-uio";
+                reg = <0x0 0xd8 0x8>;
+            };
+            uio@1 {
+                compatible = "generic-uio";
+                reg = <0x0 0xe0 0x8>;
+            };
+            uio@2 {
+                compatible = "generic-uio";
+                reg = <0x0 0xe8 0x8>;
+            };
+            uio@3 {
+                compatible = "generic-uio";
+                reg = <0x0 0xf0 0x8>;
+            };
+        };
+    };
+};
+
+
