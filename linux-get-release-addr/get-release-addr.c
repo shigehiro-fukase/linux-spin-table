@@ -173,31 +173,29 @@ int main(int argc, const char * argv[]) {
     sprintf(fname, "/proc/device-tree/cpus/cpu@%d/cpu-release-addr", cpu_num);
     printf("Checking \"%s\"..."NL, fname);
     ret = get_val64(fname, &val64);
-    if (ret != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+    if (ret == EXIT_SUCCESS) {
+        printf("CPU[%d] 0x%016lX"NL, cpu_num, val64);
     }
-    printf("CPU[%d] 0x%016llX"NL, cpu_num, val64);
 
     sprintf(fname, "/proc/device-tree/uio@%d/reg", cpu_num);
     printf("Checking \"%s\"..."NL, fname);
     ret = get_reg(fname, &addr, &size);
-    if (ret != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+    if (ret == EXIT_SUCCESS) {
+        printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
     }
-    printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
 
     sprintf(fname, "/sys/class/uio/uio%d/device/of_node/reg", cpu_num);
     printf("Checking \"%s\"..."NL, fname);
     ret = get_reg(fname, &addr, &size);
-    if (ret != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
+    if (ret == EXIT_SUCCESS) {
+        printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
     }
-    printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
 
     return 0;
 }
 
 static int usage(int argc, const char * argv[]) {
+    (void)argc;
     printf(
             "usage: %s [OPTIONS] CPU"NL
             ""NL
