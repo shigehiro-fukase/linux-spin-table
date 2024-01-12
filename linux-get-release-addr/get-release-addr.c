@@ -16,6 +16,7 @@ static const char * __progname;
 static int usage(int argc, const char * argv[]);
 
 int opt_cpu = 0;
+int opt_uio = 0;
 
 int cpu_num = -1;
 
@@ -29,6 +30,8 @@ static int parse_args(int argc, const char * argv[]) {
         if (*arg == '-') {
             if ((strcmp(arg, "-h") == 0) || (strcmp(arg, "--help") == 0)) {
                 return usage(argc, argv);
+            } else if ((strcmp(arg, "-u") == 0) || (strcmp(arg, "--uio") == 0)) {
+                opt_uio = 1;
             } else {
                 printf("Unknown argument argv[%d]:%s\n", 0, argv[i]);
             }
@@ -177,18 +180,20 @@ int main(int argc, const char * argv[]) {
         printf("CPU[%d] 0x%016lX"NL, cpu_num, val64);
     }
 
-    sprintf(fname, "/proc/device-tree/uio@%d/reg", cpu_num);
-    printf("Checking \"%s\"..."NL, fname);
-    ret = get_reg(fname, &addr, &size);
-    if (ret == EXIT_SUCCESS) {
-        printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
-    }
+    if (opt_uio) {
+            sprintf(fname, "/proc/device-tree/uio@%d/reg", cpu_num);
+            printf("Checking \"%s\"..."NL, fname);
+            ret = get_reg(fname, &addr, &size);
+            if (ret == EXIT_SUCCESS) {
+                    printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
+            }
 
-    sprintf(fname, "/sys/class/uio/uio%d/device/of_node/reg", cpu_num);
-    printf("Checking \"%s\"..."NL, fname);
-    ret = get_reg(fname, &addr, &size);
-    if (ret == EXIT_SUCCESS) {
-        printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
+            sprintf(fname, "/sys/class/uio/uio%d/device/of_node/reg", cpu_num);
+            printf("Checking \"%s\"..."NL, fname);
+            ret = get_reg(fname, &addr, &size);
+            if (ret == EXIT_SUCCESS) {
+                    printf("CPU[%d] addr=0x%08X size=0x%X"NL, cpu_num, addr, size);
+            }
     }
 
     return 0;
@@ -205,6 +210,7 @@ static int usage(int argc, const char * argv[]) {
             ""NL
             "OPTIONS"NL
             "-h, --help         Show this message"NL
+            "-u, --uio          Check UIO path (experimental)"NL
             ""NL
             , argv[0]);
     fflush(stdout);
