@@ -78,7 +78,12 @@ static int parse_args(int argc, const char * argv[]) {
             opt_pa = 1;
             printf("phys_addr=0x%lX"NL, phys_addr);
             if (dir == 1) {
-                count = argc - i;
+                i++;
+                count = argc -i;
+                if (count == 0) {
+                    printf("Need one or more value(s) for write "NL);
+                    return EXIT_FAILURE;
+                }
                 printf("count=%ld"NL, count);
                 opt_count = 1;
                 break;
