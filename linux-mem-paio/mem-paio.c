@@ -14,8 +14,6 @@
 #define NL "\n"
 #endif
 
-static const char * __progname;
-
 static int usage(int argc, const char * argv[]);
 
 enum iocmd {
@@ -34,16 +32,13 @@ int opt_cmd = 0;
 int opt_pa = 0;
 int opt_count = 0;
 
-int cpu_num = -1;
-intptr_t phys_addr = ~0;
-size_t mem_sz = 0;
-
 static int parse_args(int argc, const char * argv[]) {
     int ret = EXIT_SUCCESS;
     int i;
     enum iocmd cmd = 0;
     int dir = -1;
     unsigned byte_width = 0;
+    intptr_t phys_addr = ~0;
     unsigned long phys_size = 0;
     unsigned long count = 0;
     unsigned long long value = 0;
@@ -168,7 +163,6 @@ static int parse_args(int argc, const char * argv[]) {
 int main(int argc, const char * argv[]) {
     int ret = 0;
 
-    __progname = argv[0];
     if ((ret = parse_args(argc, argv)) != EXIT_SUCCESS) {
         return ret;
     }
