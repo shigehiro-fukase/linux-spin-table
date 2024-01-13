@@ -80,8 +80,8 @@ static int strsplit(char * s, char* av[], int avsz) {
 	av[i] = NULL;
 	return i;
 }
-static int parse_line(char * buf, char* av[], int avsz) {
-	int ret, ac, i = 0;
+static int mod_parse_args(int argc, const char * argv[]) {
+	int ret, i = 0;
 	enum iocmd cmd = 0;
 	int dir = -1;
 	unsigned byte_width = 0;
@@ -90,17 +90,14 @@ static int parse_line(char * buf, char* av[], int avsz) {
 	unsigned long count = 0;
 	unsigned long long value = 0;
 	void __iomem * iomem = NULL;
-	char* s;
+	const char* s;
 
-	if (verbose) printk(DRIVER_NAME ": %s line='%s'\n", __func__, buf);
-	ac = strsplit(buf, av, avsz);
-	if (ac <= 0) return ac;
 	//
 	// av[0] iocmd
 	//
-	s = av[i];
+	s = argv[i];
 	if (!s) return -1;
-	if (verbose) printk(DRIVER_NAME ": %s av[%d]='%s'\n", __func__, i, s);
+	if (verbose) printk(DRIVER_NAME ": %s argv[%d]='%s'\n", __func__, i, s);
 	if (0) {
 	} else if (strcasecmp(s, "rb") == 0) { cmd = CMD_RB; byte_width = 1; dir = 0;
 	} else if (strcasecmp(s, "rw") == 0) { cmd = CMD_RW; byte_width = 2; dir = 0;
@@ -115,26 +112,26 @@ static int parse_line(char * buf, char* av[], int avsz) {
 		return -1;
 	}
 	i++;
-	s = av[i];
+	s = argv[i];
 	if (!s) return -1;
 
 	//
-	// av[1] address
+	// argv[1] address
 	//
 	ret = kstrtoull(s, 0, &phys_addr);
 	printk(DRIVER_NAME ": phys_addr=0x%llX ret=%d\n", phys_addr, ret);
 	i++;
-	s = av[i];
+	s = argv[i];
 	if (!s) return -1;
 
 	//
-	// av[2] r(read count) w(write value...)
+	// argv[2] r(read count) w(write value...)
 	//
 	if (dir == 0) {
 		ret = kstrtoul(s, 0, &count);
 		printk(DRIVER_NAME ": count=%ld ret=%d\n", count, ret);
 	} else /* if (dir == 1) */ {
-		count = ac - i;
+		count = argc - i;
 		printk(DRIVER_NAME ": count=%ld\n", count);
 	}
 	phys_size = byte_width * count;
@@ -165,13 +162,13 @@ static int parse_line(char * buf, char* av[], int avsz) {
 			}
 		}
 	} else /* if (dir == 1) */ {
-		count = ac - i;
+		count = argc - i;
 		printk(DRIVER_NAME ": count=%ld\n", count);
 		unsigned long off;
-		for (off=0; i<ac; i++, off++) {
-			s = av[i];
+		for (off=0; i<argc; i++, off++) {
+			s = argv[i];
 			ret = kstrtoull(s, 0, &value);
-			if (verbose) printk(DRIVER_NAME ": av[%d]=0x%llX ret=%d\n", i, value, ret);
+			if (verbose) printk(DRIVER_NAME ": argv[%d]=0x%llX ret=%d\n", i, value, ret);
 			if (cmd == CMD_WB) {
 				uint8_t * p = ((uint8_t*)iomem) + off;
 				uint8_t prev = *p;
@@ -196,7 +193,14 @@ static int parse_line(char * buf, char* av[], int avsz) {
 		}
 	}
 	iounmap(iomem);
-	return ac;
+	return argc;
+}
+static int mod_parse_line(char * buf, char* av[], int avsz) {
+	int ac;
+	if (verbose) printk(DRIVER_NAME ": %s line='%s'\n", __func__, buf);
+	ac = strsplit(buf, av, avsz);
+	if (ac <= 0) return ac;
+	return mod_parse_args(ac, (const char**)av);
 }
 
 static char proc_linebuf[0x400];
@@ -222,7 +226,7 @@ static ssize_t mod_proc_write(struct file *file, const char __user *buf, size_t 
 	}
 	proc_linebuf[count] = '\0';
 	int ret;
-	ret = parse_line(proc_linebuf, (char**)&av, sizeof(av));
+	ret = mod_parse_line(proc_linebuf, (char**)&av, sizeof(av));
 	if (ret < 0) {
 		printk(DRIVER_NAME ": %s E(%d)\n", __func__, ret);
 	}
