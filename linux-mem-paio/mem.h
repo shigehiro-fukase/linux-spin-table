@@ -42,7 +42,9 @@ static inline void * mmap_device_memory(const char * dev, void * addr, size_t le
     if (mmap_fd < 0) {
         mmap_fd = open(dev, O_RDWR | O_SYNC);
         if (mmap_fd < 0) {
-            perror("open /dev/mem");
+            char msg[256];
+            sprintf(msg, "open %s", dev);
+            perror(msg);
             exit(EXIT_FAILURE);
         }
     }
