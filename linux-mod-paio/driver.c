@@ -55,11 +55,13 @@ static void __iomem *mod_ioremap(resource_size_t phys_addr, unsigned long size) 
 			, LINUX_VERSION_CODE_MAJOR
 			, LINUX_VERSION_CODE_MINOR
 			);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
-	pgprot_t pgprot = __pgprot(PROT_NORMAL_NC);
-	return __ioremap(phys_addr, size, pgprot);
+#if defined(ioremap_nocache)
+	return ioremap_nocache(phys_addr, size);
 #elif defined(ioremap_wc)
 	return ioremap_wc(phys_addr, size);
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+	pgprot_t pgprot = __pgprot(PROT_NORMAL_NC);
+	return __ioremap(phys_addr, size, pgprot);
 #else
 #error "Unsupported kernel version"
 #endif
