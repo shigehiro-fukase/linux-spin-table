@@ -99,7 +99,6 @@ static int parse_args(int argc, const char * argv[]) {
         }
     }
     if (!opt_cmd || !opt_pa || !opt_count) {
-        printf("%s:%u\n", __func__, __LINE__);
         return usage(argc, argv);
     }
 
