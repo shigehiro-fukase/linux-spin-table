@@ -48,6 +48,11 @@ static inline void * mmap_device_memory(const char * dev, void * addr, size_t le
             exit(EXIT_FAILURE);
         }
     }
+
+    if (strncmp(dev, "/dev/uio", strlen("/dev/uio")) == 0) {
+        lseek(mmap_fd, physical, SEEK_SET);
+    }
+
     page_size = mmap_sys_pagesize();
     page_mask = ((uintptr_t)page_size -1);
     map_pa = physical & ~page_mask;
@@ -67,7 +72,16 @@ static inline void * mmap_device_memory(const char * dev, void * addr, size_t le
     if (fd) {
         *fd = mmap_fd;
     }
+
+#if 0
+    if (strncmp(dev, "/dev/uio", strlen("/dev/uio")) == 0) {
+        return (void*)(((uint8_t*)va) + map_off + physical);
+    } else {
+        return (void*)(((uint8_t*)va) + map_off);
+    }
+#else
     return (void*)(((uint8_t*)va) + map_off);
+#endif
 }
 static inline void munmap_device_memory(int fd) {
     if (fd >= 0) {
