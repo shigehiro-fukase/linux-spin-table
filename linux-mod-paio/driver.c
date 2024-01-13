@@ -149,16 +149,16 @@ static int mod_parse_args(int argc, const char * argv[]) {
 		for (off=0; off<count; off++) {
 			if (cmd == CMD_RB) {
 				uint8_t * p = ((uint8_t*)iomem) + off;
-				printk(DRIVER_NAME ": RB 0x%llX: 0x%02X\n", phys_addr+ (off*byte_width), *p);
+				printk(DRIVER_NAME ": RB 0x%08llX: 0x%02X\n", phys_addr+ (off*byte_width), *p);
 			} else if (cmd == CMD_RW) {
 				uint16_t * p = ((uint16_t*)iomem) + off;
-				printk(DRIVER_NAME ": RW 0x%llX: 0x%04X\n", phys_addr+ (off*byte_width), *p);
+				printk(DRIVER_NAME ": RW 0x%08llX: 0x%04X\n", phys_addr+ (off*byte_width), *p);
 			} else if (cmd == CMD_RD) {
 				uint32_t * p = ((uint32_t*)iomem) + off;
-				printk(DRIVER_NAME ": RD 0x%llX: 0x%08X\n", phys_addr+ (off*byte_width), *p);
+				printk(DRIVER_NAME ": RD 0x%08llX: 0x%08X\n", phys_addr+ (off*byte_width), *p);
 			} else if (cmd == CMD_RQ) {
 				uint64_t * p = ((uint64_t*)iomem) + off;
-				printk(DRIVER_NAME ": RQ 0x%llX: 0x%016llX\n", phys_addr+ (off*byte_width), *p);
+				printk(DRIVER_NAME ": RQ 0x%08llX: 0x%016llX\n", phys_addr+ (off*byte_width), *p);
 			}
 		}
 	} else /* if (dir == 1) */ {
@@ -173,22 +173,22 @@ static int mod_parse_args(int argc, const char * argv[]) {
 				uint8_t * p = ((uint8_t*)iomem) + off;
 				uint8_t prev = *p;
 				*p = (uint8_t)(value & 0xFFu);
-				printk(DRIVER_NAME ": WB 0x%llX: 0x%02X <- 0x%02X\n", phys_addr+ (off*byte_width), prev, *p);
+				printk(DRIVER_NAME ": WB 0x%08llX: 0x%02X <- 0x%02X\n", phys_addr+ (off*byte_width), prev, *p);
 			} else if (cmd == CMD_WW) {
 				uint16_t * p = ((uint16_t*)iomem) + off;
 				uint16_t prev = *p;
 				*p = (uint16_t)(value & 0xFFFFu);
-				printk(DRIVER_NAME ": WB 0x%llX: 0x%04X <- 0x%04X\n", phys_addr+ (off*byte_width), prev, *p);
+				printk(DRIVER_NAME ": WB 0x%08llX: 0x%04X <- 0x%04X\n", phys_addr+ (off*byte_width), prev, *p);
 			} else if (cmd == CMD_WD) {
 				uint32_t * p = ((uint32_t*)iomem) + off;
 				uint32_t prev = *p;
 				*p = (uint32_t)(value & 0xFFFFFFFFul);
-				printk(DRIVER_NAME ": WB 0x%llX: 0x%08X <- 0x%08X\n", phys_addr+ (off*byte_width), prev, *p);
+				printk(DRIVER_NAME ": WB 0x%08llX: 0x%08X <- 0x%08X\n", phys_addr+ (off*byte_width), prev, *p);
 			} else if (cmd == CMD_WQ) {
 				uint64_t * p = ((uint64_t*)iomem) + off;
 				uint64_t prev = *p;
 				*p = (uint64_t)(value & 0xFFFFFFFFFFFFFFFFull);
-				printk(DRIVER_NAME ": WB 0x%llX: 0x%016llX <- 0x%016llX\n", phys_addr+ (off*byte_width), prev, *p);
+				printk(DRIVER_NAME ": WB 0x%08llX: 0x%016llX <- 0x%016llX\n", phys_addr+ (off*byte_width), prev, *p);
 			}
 		}
 	}
