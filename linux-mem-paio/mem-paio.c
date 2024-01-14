@@ -32,6 +32,8 @@ int opt_cmd = 0;
 int opt_pa = 0;
 int opt_count = 0;
 
+char devname[256] = "/dev/mem";
+
 static int parse_args(int argc, const char * argv[]) {
     int ret = EXIT_SUCCESS;
     int i;
@@ -53,6 +55,30 @@ static int parse_args(int argc, const char * argv[]) {
                 return usage(argc, argv);
             } else if (strcmp(arg, "--verbose") == 0) {
                 opt_verbose = 1;
+            } else if (strcmp(arg, "--dev") == 0) {
+                size_t len;
+                if ((i+1) < argc) i++; else return usage(argc, argv);
+                arg = argv[i];
+                len = strlen(arg);
+                if (strncmp(arg, "/dev/", strlen("/dev/")) == 0) {
+                    if (len >= (sizeof(devname))) {
+                        fprintf(stderr, "Error, pthname too long"NL);
+                        return -1;
+                    }
+                    strcpy(devname, arg);
+                } else {
+                    if (len >= (sizeof(devname)-strlen("/dev/"))) {
+                        fprintf(stderr, "Error, pthname too long"NL);
+                        return -1;
+                    }
+                    sprintf(devname, "/dev/%s", arg);
+                }
+            } else if (strcmp(arg, "--uio") == 0) {
+                unsigned long uio_num;
+                if ((i+1) < argc) i++; else return usage(argc, argv);
+                arg = argv[i];
+                uio_num = strtoul(arg, NULL, 0);
+                sprintf(devname, "/dev/uio%ld", uio_num);
             } else {
                 printf("Unknown argument argv[%d]:%s"NL, 0, argv[i]);
                 return EXIT_FAILURE;
@@ -109,7 +135,8 @@ static int parse_args(int argc, const char * argv[]) {
                 phys_addr, phys_size, pagesize);
     }
 
-    if ((va = mmap_device_memory(NULL, NULL, phys_size, phys_addr, &mmap_fd)) == NULL) {
+    printf("devname = %s"NL, devname);
+    if ((va = mmap_device_memory(devname, NULL, phys_size, phys_addr, &mmap_fd)) == NULL) {
         printf("Error (E) cannot mmap memory 0x%016lX"NL, phys_addr);
         return EXIT_FAILURE;
     }
@@ -180,7 +207,7 @@ static int usage(int argc, const char * argv[]) {
     printf(
             "usage: %s [OPTIONS] CMD ADDRESS PARAM..."NL
             ""NL
-            "memory I/O via /dev/mem."NL
+            "memory I/O via /dev/mem or /dev/uio*."NL
             ""NL
             "CMD                Read: RB, RW, RD, RQ"NL
             "                   Write: WB, WW, WD, WQ"NL
@@ -190,6 +217,8 @@ static int usage(int argc, const char * argv[]) {
             ""NL
             "OPTIONS"NL
             "-h, --help         Show this message"NL
+            "--dev PATH         Set I/O device special file path"NL
+            "--uio NUM          Set I/O device path to '/dev/uio#'"NL
             ""NL
             , argv[0]);
     fflush(stdout);
