@@ -14,6 +14,7 @@ ARMv8 multiprocessor system において、2個目以降の CPU (secondary proce
 - ターゲットボードで起動中の Linux から停止中の CPU を起こすことを扱います
   - Linux が全ての CPU を SMP で使用している場合は扱えません
     - Linux カーネルコマンドラインで `maxcpus=数字` の数を小さく指定すると良いでしょう
+      - これだけでは不十分な場合があります（[RPI3の場合](./example-rpi/boot/README.md)参照）
 
 ## "spin-table" 方式について
 
