@@ -21,7 +21,9 @@ device-tree の `cpus` に記述された `cpu@数字` について、
 このとき、`maxcpus=<数字>` の設定は参照されません。
 
 - `smp_spin_table.c`
-  - `maxcpus=3` の場合、`smp_spin_table_cpu_prepare(unsigned int cpu)` 関数が 引数 `cpu``1`,`2`,`3` の3回呼ばれる
+  - device-tree の `cpus` に `cpu@0`, `cpu@1`, `cpu@2`, `cpu@3`の記述がある場合、
+    `smp_spin_table_cpu_prepare(unsigned int cpu)` 関数が 引数 `cpu` で `1`,`2`,`3` の3回呼ばれる。
+    コマンドラインで `maxcpus=3` の指定があっても 引数 `cpu=3` の呼び出しは行われる。
 
 ## 対策
 
