@@ -132,3 +132,134 @@ $ xxd /proc/device-tree/cpus/cpu@3/cpu-release-addr
 `cpu@3` を（本当に）起動したい場合に書き換えるべきアドレスは `0xd8` ではなく `0xf0` （元のDTSの記述）です。
 
 
+
+-----
+
+## その他トピック：spin-table のアドレスにアクセスする方法
+
+Linux から spin-table の `release-address` の値を書き換えるには工夫が要ります。
+
+- mmap: 起動用 device-tree `/boot/bcm2710-rpi-3-b.dtb` の書き換えが必要です
+- generic uio: 起動用コマンドラインの加筆が必要ですが、DTB は overlay で済みます
+
+
+## Generic UIO を使う場合
+
+UIO を使うには
+
+- `cmdline.txt` に uio 用の引数を追加する
+  - `uio_pdrv_genirq.of_id="generic-uio"`
+- DTB を修正して uio 用のノードを作る
+  - Linux起動後に overlay で DTBO をロードする方法でもいい
+
+の手順が必要
+
+Linux の `bootargs` が無いと、class 登録はされるが `/dev/uio*` が作られない。
+
+
+#### `cmdline.txt`例
+```
+console=serial0,115200 console=tty1 root=PARTUUID=969e7a9d-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles maxcpus=1 mem=512M nokaslr cpuidle.off=1 rodata=off uio_pdrv_genirq.of_id="generic-uio"
+```
+
+#### `dtso` 例
+```
+/dts-v1/;
+/plugin/;
+/{
+    fragment@0 {
+        target-path="/";
+        __overlay__ {
+            #address-cells = <0x01>;
+            #size-cells = <0x01>;
+
+            uio@0 {
+                compatible = "generic-uio";
+                reg = <0xd8 0x8>;
+            };
+            uio@1 {
+                compatible = "generic-uio";
+                reg = <0xe0 0x8>;
+            };
+            uio@2 {
+                compatible = "generic-uio";
+                reg = <0xe8 0x8>;
+            };
+            uio@3 {
+                compatible = "generic-uio";
+                reg = <0xf0 0x8>;
+            };
+        };
+    };
+};
+```
+
+#### `dtbo` インストール例
+```
+dtc -I dts -O dtb -o dts/rpi3b-uio.dtbo dts/rpi3b-uio.dtso
+sudo mkdir -p /sys/kernel/config/device-tree/overlays/$$
+ls -l /sys/kernel/config/device-tree/overlays/$$
+sudo sh -c "cat dts/rpi3b-uio.dtbo > /sys/kernel/config/device-tree/overlays/$$/dtbo"
+cat /sys/kernel/config/device-tree/overlays/$$/status
+ls /proc/device-tree/
+sudo modprobe uio_pdrv_genirq of_id="generic-uio"
+ls /dev/uio*
+```
+
+### `/dev/mem` で `mmap` したい場合
+
+DTB の先頭に `/memreserve/` の記述があり、`mmap` できなくなっている。
+
+#### `/boot/bcm2710-rpi-3-b.dtb` の DTS（抜粋）
+```
+dts-v1/;
+
+/memreserve/    0x0000000000000000 0x0000000000001000;
+/ {
+        compatible = "raspberrypi,3-model-b\0brcm,bcm2837";
+        model = "Raspberry Pi 3 Model B";
+        #address-cells = <0x01>;
+        #size-cells = <0x01>;
+        interrupt-parent = <0x01>;
+```
+
+`/memreserve/` を除外するとともに、`reserved-memory` を記述すれば `mmap` できる。
+
+#### `/memreserve/` から `0x0...0x100` 範囲を除外（抜粋）
+```
+/dts-v1/;
+
+/memreserve/ 0x0000000000000100 0x0000000000001000;
+/ {
+        compatible = "raspberrypi,3-model-b\0brcm,bcm2837";
+        model = "Raspberry Pi 3 Model B";
+        #address-cells = <0x01>;
+        #size-cells = <0x01>;
+        interrupt-parent = <0x01>;
+```
+
+#### `reserved-memory` に `cpu-spin-table` を加筆（抜粋）
+```
+        reserved-memory {
+                #address-cells = <0x01>;
+                #size-cells = <0x01>;
+                ranges;
+                phandle = <0x38>;
+
+                linux,cma {
+                        compatible = "shared-dma-pool";
+                        size = <0x4000000>;
+                        reusable;
+                        linux,cma-default;
+                        phandle = <0x39>;
+                };
+
+                cpu-spin-table {
+                        device-type = "memory";
+                        no-map;
+                        reg = <0x0 0x100>;
+                };
+        };
+```
+
+
