@@ -99,7 +99,7 @@ Raspberry Pi3B 起動用の device-tree ファイルをベースに、overlay �
 `/boot/overlays/` の中にコピーします。
 
 ```
-# cp rpi3b-cpu3.dtbo /boot/overlays/`
+# cp rpi3b-cpu3.dtbo /boot/overlays/
 ```
 
 #### 起動用設定の書き換え
